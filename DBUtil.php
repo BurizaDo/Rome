@@ -25,6 +25,7 @@ class DBUtil{
         $con = self::connectDB();
         $result = mysql_query("SELECT * FROM message order by id desc limit {$start}, {$size}", $con);
         $msgs = [];
+       
         while($row = mysql_fetch_array($result)){
             $r = [];
             $r['userId'] = $row['userId'];
@@ -38,15 +39,33 @@ class DBUtil{
         return $msgs;
     }
     
-    public static function updateUserProfile($userId, $name, $signature, $avatar, $images){
+    public static function getUserMessage($userId, $start = 0, $size = 30){
+        $con = self::connectDB();
+        $result = mysql_query("SELECT * FROM message where userId = {$userId} order by id desc limit {$start}, {$size}", $con);
+        $msgs = [];
+       
+        while($row = mysql_fetch_array($result)){
+            $r = [];
+            $r['userId'] = $row['userId'];
+            $r['destination'] = $row['destination'];
+            $r['start_time'] = $row['start_time'];
+            $r['end_time'] = $row['end_time'];
+            $r['message'] = $row['message'];
+            $msgs[] = $r;
+        }
+        mysql_close();        
+        return $msgs;        
+    }
+    
+    public static function updateUserProfile($userId, $name, $age, $gender, $signature, $avatar, $images){
         $con = self::connectDB();
         $result = mysql_query("select * from user where userId='{$userId}'");
         $exist = mysql_num_rows($result) > 0;
         $ret = TRUE;
         if($exist){
-            $ret = mysql_query("update user set userId='{$userId}',name='{$name}',signature='{$signature}',avatar='{$avatar}',images='{$images}'");
+            $ret = mysql_query("update user set name='{$name}',signature='{$signature}',avatar='{$avatar}',images='{$images}', age='{$age}', gender='{$gender}' where userId='{$userId}'");
         }else{
-            $ret = mysql_query("insert into user (userId,name,signature,avatar,images) VALUES('{$userId}','{$name}','{$signature}','{$avatar}','{$images}')");
+            $ret = mysql_query("insert into user (userId,name,age,gender,signature,avatar,images) VALUES('{$userId}','{$name}','{$age}','{$gender}', '{$signature}','{$avatar}','{$images}')");
         }
         mysql_close($con);
         return $ret;
@@ -70,6 +89,7 @@ class DBUtil{
             $r['signature'] = $row['signature'];
             $r['avatar'] = $row['avatar'];
             $r['images'] = $row['images'];
+            $r['gender'] = $row['gender'];
             $users[$row['userId']]= $r;
         }
         mysql_close();
