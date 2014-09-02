@@ -56,4 +56,15 @@ class Api{
         }
         return $ret;
     }
+    
+    public function deleteMessage($userId, $messageId){
+        $messages = DBUtil::getMessageById($messageId);
+        if($messages){
+            $message = $messages[0];
+            if($message['userId'] == $userId){
+                return DBUtil::deleteMessageById($messageId);
+            }
+        }
+        return FALSE;
+    }
 }
