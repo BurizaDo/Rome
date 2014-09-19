@@ -67,4 +67,41 @@ class Api{
         }
         return FALSE;
     }
+    
+    public function getMarkedCount($messageId){
+        return DBUtil::getMarkUserCount($messageId);
+    }
+    
+    public function markAsBeenTo($userId, $messageId, $hasBeenTo = TRUE){
+        $user = DBUtil::getUser($userId);
+        if(!$user) {
+            throw new \Exception ('no user found', 1002);
+        }
+        $message = DBUtil::getMessageById($messageId)[0];
+        if(!$message){
+            throw new \Exception('no message found', 1003);
+        }
+        return DBUtil::markAsBeenTo($userId, $message, $hasBeenTo);
+    }
+    
+    public function register($name, $password){
+        $user = DBUtil::getUser(md5($name));
+        if($user && !empty($user)){
+            throw new Exception('已注册', 1101);
+        }
+        return DBUtil::addUser($name, $password);
+    }
+    
+    public function login($name, $password){
+        $users = DBUtil::getUser(md5($name));
+        if(!$users || empty($users)){
+            throw new Exception('用户不存在', 1102);
+        }
+        $user = array_values($users)[0];
+        if($user['password'] != md5($password)){
+            throw new Exception('密码错误', 1103);
+        }
+        unset($user['password']);
+        return $user;
+    }
 }

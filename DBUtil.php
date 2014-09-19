@@ -44,7 +44,7 @@ class DBUtil{
         $result = mysql_query("SELECT * FROM message where id={$messageId}", $con);
        
         while($row = mysql_fetch_array($result)){
-
+            $r['id'] = $row['id'];
             $r['userId'] = $row['userId'];
             $r['destination'] = $row['destination'];
             $r['start_time'] = $row['start_time'];
@@ -115,9 +115,66 @@ class DBUtil{
             $r['avatar'] = $row['avatar'];
             $r['images'] = $row['images'];
             $r['gender'] = $row['gender'];
+            $r['password'] = $row['password'];
             $users[$row['userId']]= $r;
         }
         mysql_close();
         return $users;
+    }
+    
+    public static function getMarkUserCount($messageId){
+        $con = self::connectDB();
+        $result = mysql_query("select count(*) from beento where messageId='{$messageId}'", $con);
+        $row = mysql_fetch_array($result)[0];
+        return $row;
+    }
+    
+    private static function getMarkRecords($messageId, $userId){
+        $con = self::connectDB();
+        $result = mysql_query("select * from beento where messageId='{$messageId}' AND userId='{$userId}'", $con);        
+        $records = [];
+        while($row = mysql_fetch_array($result)){
+            $r = [];
+            $r['destination'] = $row['destination'];
+            $r['id'] = $row['id'];
+            $records[] = $r;
+        }
+        mysql_close();
+        return $records;
+    }
+    
+    public static function markAsBeenTo($userId, $message, $hasBeenTo = TRUE){
+        $records = DBUtil::getMarkRecords($message['id'], $userId);
+        $recordId = NULL;
+        foreach($records as $r){
+            if($r['destination'] == $message['destination']){
+                $recordId = $message['id'];
+                break;
+            }
+        }
+        if($hasBeenTo){
+            if(!$recordId){
+                $query = "INSERT INTO beento(messageId, userId, destination) VALUES ('{$message['id']}', '{$userId}', '{$message['destination']}')";
+            }
+        }else{
+            if($recordId){
+                $query = "DELETE FROM beento WHERE id={$recordId}";
+            }
+        }
+        if($query){
+            $con = self::connectDB();
+            mysql_query($query, $con);
+            mysql_close($con);
+        }
+        return TRUE;
+    }
+    
+    public static function addUser($name, $pwd){
+        $con = self::connectDB();
+        $password = md5($pwd);
+        $userId = md5($name);
+        $ret = mysql_query("insert into user (userId,name,password) VALUES('{$userId}','{$name}', '{$password}')", $con);
+        mysql_close($con);
+        return $ret ? $userId : 0;
     }
 }
