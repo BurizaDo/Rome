@@ -84,6 +84,10 @@ class Api{
         return DBUtil::markAsBeenTo($userId, $message, $hasBeenTo);
     }
     
+    public function hasBeenTo($userId, $messageId){
+        return !empty(DBUtil::getMarkRecords($messageId, $userId));
+    }
+    
     public function register($name, $password){
         $user = DBUtil::getUser(md5($name));
         if($user && !empty($user)){

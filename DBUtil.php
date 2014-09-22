@@ -28,6 +28,7 @@ class DBUtil{
        
         while($row = mysql_fetch_array($result)){
             $r = [];
+            $r['id'] = $row['id'];
             $r['userId'] = $row['userId'];
             $r['destination'] = $row['destination'];
             $r['start_time'] = $row['start_time'];
@@ -129,16 +130,17 @@ class DBUtil{
         return $row;
     }
     
-    private static function getMarkRecords($messageId, $userId){
+    public static function getMarkRecords($messageId, $userId){
         $con = self::connectDB();
         $result = mysql_query("select * from beento where messageId='{$messageId}' AND userId='{$userId}'", $con);        
         $records = [];
+        
         while($row = mysql_fetch_array($result)){
             $r = [];
             $r['destination'] = $row['destination'];
             $r['id'] = $row['id'];
             $records[] = $r;
-        }
+        }        
         mysql_close();
         return $records;
     }
@@ -148,10 +150,11 @@ class DBUtil{
         $recordId = NULL;
         foreach($records as $r){
             if($r['destination'] == $message['destination']){
-                $recordId = $message['id'];
+                $recordId = $r['id'];
                 break;
             }
         }
+       
         if($hasBeenTo){
             if(!$recordId){
                 $query = "INSERT INTO beento(messageId, userId, destination) VALUES ('{$message['id']}', '{$userId}', '{$message['destination']}')";
