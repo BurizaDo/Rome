@@ -180,4 +180,31 @@ class DBUtil{
         mysql_close($con);
         return $ret ? $userId : 0;
     }
+    
+    public static function commitComment($messageId, $userId, $replyId, $message, $timestamp){
+        $con = self::connectDB();        
+        $ret = mysql_query("insert into comments (messageId,userId,replyId,message,timestamp) VALUES('{$messageId}','{$userId}','{$replyId}', '{$message}', '{$timestamp}')", $con);
+        mysql_close($con);        
+        return $ret;
+    }
+    
+    public static function getComments($messageId, $from, $size){
+        $con = self::connectDB();
+        $result = mysql_query("SELECT * FROM comments where messageId={$messageId} order by timestamp desc limit {$from}, {$size}", $con);
+        $comments = [];
+       
+        while($row = mysql_fetch_array($result)){
+            $r = [];
+            $r['id'] = $row['id'];
+            $r['messageId'] = $row['messageId'];
+            $r['userId'] = $row['userId'];
+            $r['replyId'] = $row['replyId'];
+            $r['message'] = $row['message'];
+            $r['timestamp'] = $row['timestamp'];
+            $comments[] = $r;
+        }
+        mysql_close();        
+        return $comments;
+       
+    }
 }

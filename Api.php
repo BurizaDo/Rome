@@ -108,4 +108,38 @@ class Api{
         unset($user['password']);
         return $user;
     }
+    
+    public function commitComment($messageId, $userId, $message, $timestamp, $replyId = NULL){
+        $users = DBUtil::getUser($userId);
+        if(!$users || empty($users)){
+            throw new Exception('用户不存在', 1102);
+        }
+        if($replyId){
+            $replyUser = DBUtil::getUser($replyId);
+            if(!$replyUser || empty($replyUser)){
+                throw new Exception('回复的用户不存在', 1102);
+            }
+        }
+        
+        $route = DBUtil::getMessageById($messageId)[0];
+        if(!$route){
+            throw new \Exception('路线不存在', 1003);
+        }
+
+        return DBUtil::commitComment($messageId, $userId, $replyId, $message, $timestamp);
+    }
+        
+    public function getComments($messageId, $from = 0, $size = 30){
+        $comments = DBUtil::getComments($messageId, $from, $size);
+        foreach($comments as $key => $c){
+            $c['user'] = self::getUser($c['userId'])[0];
+            unset($c['userId']);
+            if($c['replyId']){
+                $c['replyUser'] = self::getUser($c['replyId'])[0];                
+            }
+            unset($c['replyId']);
+            $comments[$key] = $c;
+        }
+        return $comments;
+    }
 }
